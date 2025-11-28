@@ -280,8 +280,26 @@ export default function App() {
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
-  const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [registeredUsers, setRegisteredUsers] = useState<User[]>(() => {
+    try {
+      const saved = localStorage.getItem('kinai_users');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Ошибка загрузки пользователей", e);
+      return [];
+    }
+  });
+
+  // 2. Загружаем заказы из памяти, если они там есть
+  const [allOrders, setAllOrders] = useState<Order[]>(() => {
+    try {
+      const saved = localStorage.getItem('kinai_orders');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Ошибка загрузки заказов", e);
+      return [];
+    }
+  });
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [courierLocation, setCourierLocation] = useState({ lat: 42.84, lng: 74.60 });
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -297,7 +315,33 @@ export default function App() {
   const [adminEditOrderId, setAdminEditOrderId] = useState<string | null>(null);
   const [showCourierSuccess, setShowCourierSuccess] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+// --- НАЧАЛО ИЗМЕНЕНИЙ: Сохранение в память ---
 
+  // Следим за пользователями и сохраняем при изменениях
+  useEffect(() => {
+    localStorage.setItem('kinai_users', JSON.stringify(registeredUsers));
+  }, [registeredUsers]);
+
+  // Следим за заказами и сохраняем при изменениях
+  useEffect(() => {
+    localStorage.setItem('kinai_orders', JSON.stringify(allOrders));
+    
+    // Небольшой лайфхак: чтобы соседние вкладки узнали об обновлении
+    window.dispatchEvent(new Event("storage"));
+  }, [allOrders]);
+
+  // Добавляем слушатель, чтобы вкладки обновлялись синхронно (по желанию)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedOrders = localStorage.getItem('kinai_orders');
+      if (savedOrders) setAllOrders(JSON.parse(savedOrders));
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // --- КОНЕЦ ИЗМЕНЕНИЙ ---
   const t = TRANSLATIONS[lang];
 
   useEffect(() => {
