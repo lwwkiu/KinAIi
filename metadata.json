@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Copy of Copy of иуузавершенный",
+  "description": "AI-powered food delivery application featuring Kinai, your personal nutrition assistant.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
