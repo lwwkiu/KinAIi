@@ -262,38 +262,12 @@ const BishkekMap = ({ courierLat, courierLng, userLat, userLng, status, address 
         </div>
     );
 };
-console.log("KEY:", import.meta.env.VITE_GEMINI_API_KEY);
 
 export default function App() {
   const [lang, setLang] = useState<'EN' | 'RU'>('RU');
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
-  // --- ИСПРАВЛЕНИЕ: Загружаем текущую сессию ---
-
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('kinai_current_user');
-    try {
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [viewState, setViewState] = useState<ViewState>(() => {
-    // Определяем начальное ViewState, исходя из загруженного пользователя
-    const savedUserString = localStorage.getItem('kinai_current_user');
-    if (!savedUserString) return 'AUTH';
-
-    try {
-      const user: User = JSON.parse(savedUserString);
-      if (user.role === UserRole.ADMIN) return 'ADMIN_DASHBOARD';
-      if (user.role === UserRole.COURIER) return 'COURIER_DASHBOARD';
-      return 'MAIN';
-    } catch {
-      return 'AUTH';
-    }
-  });
-
-  // --- КОНЕЦ ИСПРАВЛЕНИЯ ИНИЦИАЛИЗАЦИИ ---
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [viewState, setViewState] = useState<ViewState>('AUTH');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeSubCategory, setActiveSubCategory] = useState<string | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -305,26 +279,8 @@ export default function App() {
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [registeredUsers, setRegisteredUsers] = useState<User[]>(() => {
-    try {
-      const saved = localStorage.getItem('kinai_users');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Ошибка загрузки пользователей", e);
-      return [];
-    }
-  });
-
-  // 2. Загружаем заказы из памяти, если они там есть
-  const [allOrders, setAllOrders] = useState<Order[]>(() => {
-    try {
-      const saved = localStorage.getItem('kinai_orders');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Ошибка загрузки заказов", e);
-      return [];
-    }
-  });
+  const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [courierLocation, setCourierLocation] = useState({ lat: 42.84, lng: 74.60 });
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -340,50 +296,7 @@ export default function App() {
   const [adminEditOrderId, setAdminEditOrderId] = useState<string | null>(null);
   const [showCourierSuccess, setShowCourierSuccess] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
-// --- НАЧАЛО ИЗМЕНЕНИЙ: Сохранение в память ---
 
-  // Сле// Следим за текущим пользователем и сохраняем при изменениях
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('kinai_current_user', JSON.stringify(currentUser));
-    } else {
-      // Если пользователь вышел, очищаем данные сессии
-      localStorage.removeItem('kinai_current_user');
-      // Также очищаем viewState, чтобы при следующем заходе была только AUTH
-      setViewState('AUTH'); 
-    }
-  }, [currentUser]);
-
-  // Дополнительно сохраняем viewState, чтобы остаться на той же странице
-  useEffect(() => {
-    if (currentUser) {
-       localStorage.setItem('kinai_view_state', viewState);
-    }
-  }, [viewState, currentUser]); // Только если пользователь залогинендим за пользователями и сохраняем при изменениях
-  useEffect(() => {
-    localStorage.setItem('kinai_users', JSON.stringify(registeredUsers));
-  }, [registeredUsers]);
-
-  // Следим за заказами и сохраняем при изменениях
-  useEffect(() => {
-    localStorage.setItem('kinai_orders', JSON.stringify(allOrders));
-    
-    // Небольшой лайфхак: чтобы соседние вкладки узнали об обновлении
-    window.dispatchEvent(new Event("storage"));
-  }, [allOrders]);
-
-  // Добавляем слушатель, чтобы вкладки обновлялись синхронно (по желанию)
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const savedOrders = localStorage.getItem('kinai_orders');
-      if (savedOrders) setAllOrders(JSON.parse(savedOrders));
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  // --- КОНЕЦ ИЗМЕНЕНИЙ ---
   const t = TRANSLATIONS[lang];
 
   useEffect(() => {
