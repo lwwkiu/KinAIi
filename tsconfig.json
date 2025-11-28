@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    
     "target": "ES2022",
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
@@ -11,7 +12,7 @@
     ],
     "skipLibCheck": true,
     "types": [
-      "node"
+      "vite/client"
     ],
     "moduleResolution": "bundler",
     "isolatedModules": true,

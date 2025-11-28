@@ -3,7 +3,7 @@ import { MOCK_PRODUCTS } from "../constants";
 
 // Note: In a real app, this would be secure. For this demo, we assume process.env.API_KEY exists.
 const getAI = () => {
-  const apiKey = process.env.API_KEY || ''; 
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
     console.warn("Gemini API Key is missing. AI features will return mock data.");
     return null;

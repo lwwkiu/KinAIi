@@ -262,6 +262,7 @@ const BishkekMap = ({ courierLat, courierLng, userLat, userLng, status, address 
         </div>
     );
 };
+console.log("KEY:", import.meta.env.VITE_GEMINI_API_KEY);
 
 export default function App() {
   const [lang, setLang] = useState<'EN' | 'RU'>('RU');
